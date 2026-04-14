@@ -15,30 +15,43 @@ def load_and_preprocess(filepath, target_sr=16000):
     
     return pre_emphasized_signal, sr
 
-def frame_signal(signal, frame_length, hop_length):
+def frame_signal(signal, sr, frame_duration=0.025, hop_duration=0.010, rms_threshold=0.01):
     """
-    Chops the signal into overlapping frames using a Hamming window.
+    Finalized framing function:
+    1. Removes DC Offset
+    2. Pads signal for perfect alignment
+    3. Chops into overlapping frames
+    4. Applies Hamming window
+    5. Filters out silent frames (VAD)
     """
-    frame_length = int(frame_length)
-    hop_length = int(hop_length)
+    # DC Offset Removal
+    signal = signal - np.mean(signal)
     
+    # convert durations (seconds) to samples
+    frame_length = int(frame_duration * sr)
+    hop_length = int(hop_duration * sr)
     signal_length = len(signal)
-    num_frames = 1 + int(np.floor((signal_length - frame_length) / hop_length))
     
-    # pad signal if it doesn't align perfectly
+    # calculate number of frames and pad if necessary
+    num_frames = int(np.ceil(float(np.abs(signal_length - frame_length)) / hop_length)) + 1
     pad_signal_length = (num_frames - 1) * hop_length + frame_length
-    if pad_signal_length > signal_length:
-        zeros = np.zeros(pad_signal_length - signal_length)
-        signal = np.append(signal, zeros)
-        
-    # extract frames
+    z = np.zeros((pad_signal_length - signal_length))
+    pad_signal = np.append(signal, z)
+    
+    # extract frames using manual indexing
     indices = np.tile(np.arange(0, frame_length), (num_frames, 1)) + \
               np.tile(np.arange(0, num_frames * hop_length, hop_length), (frame_length, 1)).T
+    frames = pad_signal[indices.astype(np.int32, copy=False)]
     
-    frames = signal[indices.astype(np.int32, copy=False)]
-    
-    # apply Hamming window to each frame
+    # apply Hamming window
     window = np.hamming(frame_length)
     frames *= window
     
-    return frames
+    # voice Activity Detection (RMS Energy Filtering)
+    rms = np.sqrt(np.mean(frames**2, axis=1))
+    voiced_mask = rms > rms_threshold
+    
+    final_frames = frames[voiced_mask]
+    
+    print(f"Total frames: {num_frames} | Voiced frames kept: {len(final_frames)}")
+    return final_frames

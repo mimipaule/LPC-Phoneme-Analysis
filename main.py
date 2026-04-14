@@ -13,10 +13,8 @@ def main():
     languages = ['English', 'Japanese', 'Arabic']
     tracks_dict = {}
     
-    # hyperparameters
+    # Pipeline hyperparameters
     target_sr = 16000
-    frame_length = 512
-    hop_length = 256
     lpc_order = 12
     
     for lang in languages:
@@ -28,9 +26,9 @@ def main():
         filepath = wav_files[0]
         print(f"Processing {lang}: {filepath}")
         
-        # Preprocessing
+        # 1. Preprocessing
         signal, sr = load_and_preprocess(filepath, target_sr=target_sr)
-        frames = frame_signal(signal, frame_length, hop_length)
+        frames = frame_signal(signal, sr=sr)
         
         # Dynamic Feature Extraction
         formant_tracks = process_dynamic_formants(frames, sr, lpc_order)

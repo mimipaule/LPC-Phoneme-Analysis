@@ -1,0 +1,83 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{hyperref}
+
+\begin{document}
+
+\title{Cross-Lingual Phonetic Analysis Using Dynamic Formant Tracking and Dynamic Time Warping\\
+{\large EC519 Speech Processing by Humans and Machines - Final Project}
+}
+
+\author{Mimi Paule}
+\date{April 29, 2026}
+\maketitle
+\vspace{-1cm}
+\begin{abstract}
+This report investigates the acoustic similarities and temporal geometric differences of the human vocal tract when pronouncing phonetically identical loanwords across English, Japanese, and Arabic. By applying Short-Time Linear Predictive Coding (LPC) to extract continuous temporal formant trajectories ($F_1, F_2$), and utilizing Dynamic Time Warping (DTW) to sequence-align the nonlinear speaking durations, this study quantifies the absolute acoustic distances between the three languages. % TODO: Add 1 sentence finalizing your average distance results here once you run the code.
+\end{abstract}
+
+\textbf{Keywords:} Speech Processing, Linear Predictive Coding (LPC), Dynamic Time Warping (DTW), Formant Tracking, Linguistics
+
+\section{Introduction}
+% TODO: Introduce the project context. Discuss why looking at loanwords across vastly different language families (Germanic vs Japonic vs Semitic) is an interesting physical speech processing problem.
+Phonetic loanwords provide a unique opportunity to study how different linguistic backgrounds constrain the physical articulators (tongue, jaw, lips) when attempting to reproduce identical acoustic targets. 
+
+\section{Methodology}
+
+\subsection{Data Collection and Preprocessing}
+% TODO: Explain how you recorded the 8 words in English, Japanese, and Arabic.
+The audio signals were downsampled to 16,000 Hz according to the Nyquist theorem to isolate the 0-8000 Hz human vocal frequency band, minimizing computational overhead and concentrating mathematical coefficients on formant resonances rather than high-frequency noise. A pre-emphasis filter was applied using a first-order difference equation:
+\begin{equation}
+y[n] = x[n] - \alpha x[n-1]
+\end{equation}
+where $\alpha = 0.97$. This flattens the natural -6 dB/octave glottal spectral tilt.
+
+\subsection{Dynamic Feature Extraction (LPC)}
+% TODO: Explain framing (Hamming window) and how LPC extracts formants.
+The signals were divided into overlapping frames. For each frame, an LPC predictor of order $p=12$ was calculated. By solving for the roots of the LPC polynomial:
+\begin{equation}
+A(z) = 1 - \sum_{k=1}^{p} a_k z^{-k}
+\end{equation}
+the exact phase angles and radii were extracted, yielding explicit center frequencies ($F_1$ and $F_2$) and bandwidths. Roots with impossibly wide bandwidths ($B > 400$ Hz) were filtered out to track true vocal tract resonances.
+
+\subsection{Sequence Alignment (DTW)}
+% TODO: Explain why DTW is used (words are spoken at different speeds).
+To mathematically compare the sequences of ($F_1, F_2$) pairs, Dynamic Time Warping (DTW) was applied alongside the Euclidean distance norm to optimally map non-linear temporal alignments.
+
+\section{Results and Visualizations}
+
+\subsection{Spectrogram and Formant Tracking}
+% TODO: Drop in your two favorite words as figures here.
+As seen in Figure \ref{fig:spectrogram}, the formant tracking algorithm successfully latches onto the temporal resonance bands.
+
+\begin{figure}[htbp]
+\centerline{\includegraphics[width=\linewidth]{example-image}} % TODO: Replace 'example-image' with your generated 'reports/Camera_Spectrogram.png'
+\caption{Spectrogram overlay of ($F_1, F_2$) tracking for the word.}
+\label{fig:spectrogram}
+\end{figure}
+
+\subsection{Cross-Lingual Distance Matrix}
+% TODO: Discuss the DTW heatmap output.
+By averaging the DTW distances across all loanwords, the physical phonetic distance between the languages was quantified.
+
+\begin{figure}[htbp]
+\centerline{\includegraphics[width=\linewidth]{example-image}} % TODO: Replace 'example-image' with 'reports/Distance_Matrix.png'
+\caption{Averaged DTW Distance Matrix across the word corpus.}
+\label{fig:matrix}
+\end{figure}
+
+\section{Conclusion}
+% TODO: Write your final conclusions based on the distance matrix. Which two languages are acoustically closest when saying these words?
+
+\begin{thebibliography}{00}
+\bibitem{b1} L. Rabiner and R. Schafer, \emph{Theory and Applications of Digital Speech Processing}. Pearson, 2010.
+\bibitem{b2} % TODO: Add any EC519 class slides or textbook references here.
+\end{thebibliography}
+
+\end{document}
