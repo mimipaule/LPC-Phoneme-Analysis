@@ -22,11 +22,14 @@ def plot_spectrogram_with_formants(signal, sr, formant_tracks, title="Spectrogra
         plt.scatter(time_bins, formant_tracks[:, 0], color='cyan', label='F1', s=5, alpha=0.8)
         if formant_tracks.shape[1] > 1:
             plt.scatter(time_bins, formant_tracks[:, 1], color='magenta', label='F2', s=5, alpha=0.8)
+        
+        if formant_tracks.shape[1] > 2:
+            plt.scatter(time_bins, formant_tracks[:, 2], color='yellow', label='F3', s=5, alpha=0.8)
             
         plt.legend()
         
     plt.title(title)
-    plt.ylim(0, 4000) # formants primarily interesting < 4000 Hz
+    plt.ylim(0, 4000)
     plt.tight_layout()
     plt.savefig(f"reports/{title.replace(' ', '_')}.png")
     plt.close()

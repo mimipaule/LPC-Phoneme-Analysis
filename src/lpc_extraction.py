@@ -37,25 +37,23 @@ def find_formants_from_lpc(lpc_coeffs, sr):
 
 def process_dynamic_formants(frames, sr, lpc_order):
     """
-    Processes all frames to generate temporal formant tracks (e.g., F1, F2).
+    Processes all frames to generate temporal formant tracks.
     """
     temporal_tracks = []
     
     for frame in frames:
-        # ignore extremely quiet frames
-        if np.max(np.abs(frame)) < 1e-4:
-            temporal_tracks.append([np.nan, np.nan])
-            continue
+
+        if np.sqrt(np.mean(frame**2)) < 1e-3:
+            continue # Skip frames rather than appending NaNs
             
         coeffs = extract_lpc_coefficients(frame, lpc_order)
         formants = find_formants_from_lpc(coeffs, sr)
         
-        # store F1 and F2
-        if len(formants) >= 2:
-            temporal_tracks.append([formants[0], formants[1]])
-        elif len(formants) == 1:
-            temporal_tracks.append([formants[0], np.nan])
-        else:
-            temporal_tracks.append([np.nan, np.nan])
+        # capture the first three formants
+        if len(formants) >= 3:
+            temporal_tracks.append([formants[0], formants[1], formants[2]])
+        elif len(formants) == 2:
+            # Simple padding if F3 is missing in a single frame
+            temporal_tracks.append([formants[0], formants[1], 0])
             
     return np.array(temporal_tracks)
