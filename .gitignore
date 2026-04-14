@@ -8,8 +8,6 @@
 *.fdb_latexmk
 *.bbl
 *.blg
-*.pdf
-*.tex
 
 # Python
 __pycache__/
@@ -42,3 +40,4 @@ data/processed/**/*.npz
 
 # Handoff Doc
 project_handoff.md
+reports/
