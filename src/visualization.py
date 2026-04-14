@@ -31,7 +31,7 @@ def plot_spectrogram_with_formants(signal, sr, formant_tracks, title="Spectrogra
     plt.savefig(f"reports/{title.replace(' ', '_')}.png")
     plt.close()
 
-def plot_distance_matrix(matrix, labels):
+def plot_distance_matrix(matrix, labels, title="Cross-Lingual Acoustic Distances"):
     """
     Plots the computed DTW distance matrix as a heatmap.
     """
@@ -51,7 +51,7 @@ def plot_distance_matrix(matrix, labels):
             
             plt.text(j, i, f"{val:.2f}", ha='center', va='center', color=color)
             
-    plt.title("Cross-Lingual Acoustic Distances")
+    plt.title(title)
     plt.tight_layout()
-    plt.savefig("reports/Distance_Matrix.png")
+    plt.savefig(f"reports/{title.replace(' ', '_').replace(':', '')}.png")
     plt.close()
