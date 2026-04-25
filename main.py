@@ -1,10 +1,11 @@
 import argparse
 import os
 import glob
+import json
 from src.preprocessing import load_and_preprocess, frame_signal
 from src.lpc_extraction import process_dynamic_formants
 from src.dtw_alignment import compute_distance_matrix
-from src.visualization import plot_distance_matrix, plot_spectrogram_with_formants
+from src.visualization import plot_distance_matrix, plot_spectrogram_with_formants, plot_vowel_space
 
 
 def main():
@@ -18,6 +19,7 @@ def main():
     # Pipeline hyperparameters
     target_sr = 16000
     lpc_order = 18 # 12 or 18? research
+    final_report_data = {}
 
     for word in anchor_words:
         print(f"\n" + "="*30)
@@ -55,10 +57,16 @@ def main():
             print(f"Computing DTW distances for '{word}'...")
             matrix, labels = compute_distance_matrix(word_tracks)
             plot_distance_matrix(matrix, labels, title=f"Distance Matrix: {word}")
+            plot_vowel_space(word_tracks, word_title=word)
         else:
             print(f"Not enough data to compare languages for '{word}'.")
 
     print("\nAll words processed. Check the reports/ directory for results.")
+
+    print("\n" + "="*50)
+    print("COPY AND PASTE THE DATA BELOW")
+    print("="*50)
+    print(json.dumps(final_report_data, indent=4))
 
 if __name__ == "__main__":
     main()

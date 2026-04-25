@@ -35,7 +35,7 @@ def find_formants_from_lpc(lpc_coeffs, sr):
 
     return np.sort(formants)
 
-def process_dynamic_formants(frames, sr, lpc_order):
+def process_dynamic_formants(frames, sr, lpc_order, rms_threshold=1e-3):
     """
     Processes all frames to generate temporal formant tracks.
     """
@@ -43,7 +43,7 @@ def process_dynamic_formants(frames, sr, lpc_order):
     
     for frame in frames:
 
-        if np.sqrt(np.mean(frame**2)) < 1e-3:
+        if np.sqrt(np.mean(frame**2)) < rms_threshold:
             continue # Skip frames rather than appending NaNs
             
         coeffs = extract_lpc_coefficients(frame, lpc_order)

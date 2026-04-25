@@ -12,6 +12,9 @@ def load_and_preprocess(filepath, target_sr=16000):
     # pre-emphasis filter: y(t) = x(t) - alpha * x(t-1)
     alpha = 0.97
     pre_emphasized_signal = np.append(signal[0], signal[1:] - alpha * signal[:-1])
+
+    if np.max(np.abs(pre_emphasized_signal)) > 0:
+        pre_emphasized_signal = pre_emphasized_signal / np.max(np.abs(pre_emphasized_signal))
     
     return pre_emphasized_signal, sr
 
