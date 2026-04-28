@@ -58,6 +58,14 @@ def main():
             matrix, labels = compute_distance_matrix(word_tracks)
             plot_distance_matrix(matrix, labels, title=f"Distance Matrix: {word}")
             plot_vowel_space(word_tracks, word_title=word)
+            
+            # Populate final_report_data with the distance matrix
+            word_distances = {}
+            for i, lang1 in enumerate(labels):
+                word_distances[lang1] = {}
+                for j, lang2 in enumerate(labels):
+                    word_distances[lang1][lang2] = float(matrix[i, j])
+            final_report_data[word] = word_distances
         else:
             print(f"Not enough data to compare languages for '{word}'.")
 
