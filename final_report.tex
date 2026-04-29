@@ -1,0 +1,137 @@
+\documentclass[11pt, letterpaper]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{setspace} % For double spacing
+\usepackage{graphicx} % For including plots from the reports/ directory
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{caption}
+\usepackage{tipa}
+
+% Professor's Requirement: "line spacing should preferably be double"
+\doublespacing
+
+\title{\singlespacing \vspace{-2cm}EC519 Final Project: Cross-Linguistic Acoustic Analysis via Short-Time LPC Formant Tracking}
+\vspace{-1cm}
+\author{Mimi Paule}
+\date{April 29, 2026}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+% Briefly summarize the objective, methodology, and key findings of comparing English, Japanese, and Arabic pronunciations.
+This project investigates the acoustic differences in vocal tract dynamics across different languages by analyzing words that sound similar phonetically. Short-Time Linear Predictive Coding (LPC) is applied to track changing formant frequencies ($F_1, F_2, F_3$) over time, and Dynamic Time Warping (DTW) calculates the acoustic distance between the pronunciations.
+\end{abstract}
+
+\section{Connection to Course Material}
+This project is a practical implementation of the speech processing and signal analysis concepts discussed in class, specifically focusing on Short-Time Analysis and Linear Predictive Coding (LPC). 
+In class, we examined how the human vocal tract can be approximated as an all-pole infinite impulse response (IIR) filter. 
+This project builds directly upon that theory by extracting the coefficients of this filter to model the vocal tract's physical geometry during speech.
+
+To compute these LPC coefficients, the project relies on the autocorrelation method discussed in the lectures. While computational libraries were used for efficiency, the underlying mathematical framework remains rooted in the digital signal processing theory covered in class. 
+I was motivated to pursue this specific topic because it utilizes signal processing concepts directly, compared to a ``black-box'' neural network approach for speaker recognition. 
+Bridging the gap between the classroom material and my personal interests in language learning made this a particularly fun application of the course curriculum.
+
+\section{Methodology}
+
+\subsection{Data Collection and Preprocessing}
+The dataset consists of eight ``anchor words'' recorded in English, Japanese, and Arabic using a consistent microphone setup to minimize acoustic variance. The signals are first downsampled to a standardized 16 kHz to ensure uniform frequency resolution across all samples. To compensate for the natural spectral tilt of human speech and enhance the visibility of higher-frequency formants, a pre-emphasis filter ($H(z) = 1 - 0.97z^{-1}$) is applied. 
+
+The pre-emphasized signal is then segmented into 25ms overlapping frames with a 10ms hop size. Each frame is multiplied by a Hamming window to reduce spectral leakage at the frame boundaries. To isolate active speech and discard silent or noisy intervals, a Voice Activity Detection (VAD) algorithm is implemented based on a Root Mean Square (RMS) energy threshold. This ensures that subsequent analysis is performed only on frames containing significant phonetic information.
+
+\subsection{Short-Time LPC Formant Tracking}
+For each voiced frame, the vocal tract is modeled as an all-pole Linear Predictive Coding (LPC) filter of order 18. This order was selected to adequately capture the resonance peaks of the human vocal tract at the 16 kHz sampling rate. Formant frequencies are extracted by calculating the roots of the LPC predictor polynomial. 
+
+Each complex root corresponds to a resonance peak in the frequency domain; the angular position of the root relative to the unit circle indicates the formant frequency, while its distance from the unit circle determines the bandwidth of the resonance. To ensure physiological accuracy and stability, the extracted peaks are filtered to exclude DC artifacts (below 90 Hz) and weak resonances (bandwidths exceeding 400 Hz). The first three formants ($F_1, F_2, F_3$) are tracked dynamically across the duration of each word to form a temporal trajectory of the vocal tract's state.
+
+\subsection{Dynamic Time Warping (DTW)}
+Due to the inherent variations in speech duration and tempo across different languages, a direct frame-by-frame comparison of formant tracks is insufficient for quantifying similarity. 
+Dynamic Time Warping (DTW) is used to find the optimal non-linear alignment between two temporal sequences of formant vectors. 
+The algorithm utilizes a local Euclidean distance metric and a global cost minimization strategy to map frames from one language's pronunciation to the most acoustically similar frames in another to represent the phonetic divergence between the two pronunciations.
+
+\section{Implementation Challenges}
+One of the primary challenges encountered was the lack of an acoustically treated recording environment, which introduced inconsistent ambient noise and reverberation across the English, Japanese, and Arabic datasets. 
+These environmental factors, combined with variations in microphone proximity, resulted in inconsistent signal-to-noise ratios that made cross-lingual comparisons more difficult. 
+Specifically, the Voice Activity Detection (VAD) threshold required frequent manual tuning to avoid either cutting off the ends of words or erroneously including background noise as active speech.
+
+% Additionally, isolating true formants from the LPC predictor polynomial required rigorous filtering. 
+% Because the vocal tract model is an approximation, the algorithm often produced inaccurate roots with high bandwidths or unrealistic frequencies. 
+% Developing something to differentiate these artifacts from legitimate $F_1$, $F_2$, and $F_3$ resonances was critical for maintaining the integrity of the temporal tracks used in the DTW alignment. 
+
+\section{Results and Analysis}
+The results of the cross-lingual analysis are summarized in Table \ref{tab:dtw_distances}, which displays the normalized DTW distances between language pairs for each anchor word. Smaller values indicate a closer acoustic similarity in the vocal tract trajectories.
+
+As shown in the table, words like ``Broccoli'' typically showed lower distances, suggesting a more standardized articulation across the three languages. 
+Conversely, words with significant phonetic variation in the vowels, such as ``Tomato,'' showed higher distances.
+
+The combined articulatory space in Figure \ref{fig:vowel_grid} provides further insight. 
+The centroids (marked with X) show the average jaw and tongue position. 
+In the word ``Camera,'' for instance, the English pronunciation shows a significantly lower F2 compared to Japanese, reflecting the /\textipa{\textturnr}/ phoneme that is present in American English but not in Japanese or Arabic.
+The spread of the individual frame markers also illustrates the dynamic nature of the vocal tract; tighter clusters indicate stable monophthongs, while elongated tracks capture the motion of diphthongs.
+
+It is worth noting that the articulatory patterns observed were not always uniform across the dataset, leading to several unexpected results. 
+While I expected a consistent "language-wide" bias in jaw or tongue position, the data suggests that these trends are highly dependent on the specific phoneme constituents of each word. 
+For instance, in "Broccoli," the English pronunciation showed a  more open-mouth posture ($F_1$ near 800 Hz) than its Japanese counterpart. 
+However, in other anchor words, this pattern was reversed or neutralized. 
+These fluctuations indicate that the way neighboring phonemes influence one another plays a dominant role in shaping the acoustic space.
+
+\begin{table}[ht]
+\centering
+\singlespacing
+\small
+\begin{tabular}{l|c|c|c}
+\hline
+\textbf{Word} & \textbf{English--Japanese} & \textbf{English--Arabic} & \textbf{Japanese--Arabic} \\ \hline
+Camera    & 1267.0 & 1483.3 & 1335.8 \\
+Broccoli  & 994.2 & 908.4 & 895.3 \\
+Radio     & 1419.0 & 1270.7 & 1067.8 \\
+Pajama    & 897.1 & 1221.8 & 1335.0 \\
+Tomato    & 1523.4 & 1712.9 & 1861.2 \\
+Telephone & 1755.3 & 1262.9 & 1395.0 \\
+Chocolate & 1155.0 & 1616.3 & 1289.9 \\
+Tennis    & 2225.2 & 1810.6 & 1494.1 \\ \hline
+\end{tabular}
+\caption{Normalized DTW Acoustic Distances.}
+\label{tab:dtw_distances}
+\end{table}
+
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=\textwidth]{reports/vowel_space_combined_grid.png}
+    \caption{Comparative F1 vs. F2 Vowel Space for all anchor words.}
+    \label{fig:vowel_grid}
+\end{figure}
+
+\section{Conclusion}
+This project developed a cross-lingual acoustic analysis pipeline by integrating Short-Time Linear Predictive Coding with Dynamic Time Warping. By modeling the vocal tract as an all-pole IIR filter and extracting temporal formant trajectories, the system was able to move beyond subjective phonetic comparisons and generate quantitative ``acoustic distances'' between equivalent words across English, Japanese, and Arabic.
+
+The analysis of the DTW distance matrix revealed varying degrees of acoustic similarity among the selected loan words. Words like ``Broccoli'' and ``Pajama'' demonstrated relatively low distances across all three languages, indicating a globally consistent articulatory pattern for these specific phonetic sequences. In contrast, words like ``Tomato'' and ``Telephone'' yielded significantly higher distances, largely due to variations in vowel pronunciation—such as the divergent use of the open /æ/ versus the neutral /a/—which was vividly corroborated by the F1 vs. F2 vowel space plots. Furthermore, the analysis highlighted the critical importance of a controlled recording environment, as inconsistent ambient noise directly impacted the Voice Activity Detection thresholding and the stability of the LPC formant extraction. Despite these environmental challenges, the project effectively demonstrated the power of digital signal processing techniques in quantifying the physical nuances of cross-linguistic vocal articulation.
+For future work, I would like to expand the dataset to include multiple speakers for each language to allow for the normalization of individual physiological traits, isolating purely linguistic acoustic differences.
+
+\begin{thebibliography}{9}
+
+\bibitem{brookes}
+Mike Brookes, \textit{Linear Prediction}, Voicebox: Speech Processing Toolbox for MATLAB, Imperial College London. \url{http://www.ee.ic.ac.uk/hp/staff/dmb/voicebox/lpc.html}
+
+\bibitem{geeksforgeeks}
+GeeksforGeeks, \textit{Dynamic Time Warping (DTW) in Time Series}, 2024. \url{https://www.geeksforgeeks.org/machine-learning/dynamic-time-warping-dtw-in-time-series/}
+
+\bibitem{jurafsky}
+Dan Jurafsky and James H. Martin, \textit{Speech and Language Processing (3rd ed. draft)}, Chapter 14: Phonetics, 2024. \url{https://web.stanford.edu/~jurafsky/slp3/14.pdf}
+
+\bibitem{picovoice}
+Picovoice, \textit{Complete Guide to Voice Activity Detection (VAD)}, 2023. \url{https://picovoice.ai/blog/complete-guide-voice-activity-detection-vad/}
+
+\bibitem{russell}
+Kevin Russell, \textit{Formants}, Phonetics: Acoustic Theory, University of Manitoba. \url{https://home.cc.umanitoba.ca/~krussll/phonetics/acoustic/formants.html}
+
+\end{thebibliography}
+
+\end{document}
+ustic/formants.html}
+
+\end{thebibliography}
+
+\end{document}

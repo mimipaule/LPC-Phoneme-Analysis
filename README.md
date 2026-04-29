@@ -1,4 +1,4 @@
-# Cross-Linguistic Phoneme Analysis via Short-Time LPC Formant Tracking and Dynamic Time Warping
+# Cross-Linguistic Acoustic Analysis via Short-Time LPC Formant Tracking and Dynamic Time Warping
 
 ## Overview
 This project investigates the acoustic differences in vocal tract dynamics across different languages (English, Japanese, and Arabic) by analyzing words that sound phonetically similar. The goal is to quantify how the same word physically differs in pronunciation across native linguistic backgrounds using digital signal processing techniques.
