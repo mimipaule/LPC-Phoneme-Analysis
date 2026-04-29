@@ -40,4 +40,3 @@ data/processed/**/*.npz
 
 # Handoff Doc
 project_handoff.md
-//reports/
